@@ -1,257 +1,460 @@
-import React, { Component, PropTypes } from 'react';
-import moment from 'moment';
-import parseInput from './utils/parseInput.js';
-import DayCell from './DayCell.js';
-import getTheme, { defaultClasses } from './styles.js';
+import React, { Component, PropTypes } from 'react'
+import moment from 'moment'
+import Cell from './Cell'
+import getTheme from './styles'
+import { VIEWMODE, SELECTMODE } from './constants'
 
 function checkRange(dayMoment, range) {
-  return (
-    dayMoment.isBetween(range['startDate'], range['endDate']) ||
-    dayMoment.isBetween(range['endDate'], range['startDate'])
-  )
-}
-
-function checkStartEdge(dayMoment, range) {
-  const { startDate } = range;
-
-  return dayMoment.isSame(startDate);
-}
-
-function checkEndEdge(dayMoment, range) {
-  const { endDate } = range;
-
-  return dayMoment.isSame(endDate);
-}
-
-function isOusideMinMax(dayMoment, minDate, maxDate, format) {
-  return (
-    (minDate && dayMoment.isBefore(parseInput(minDate, format))) ||
-    (maxDate && dayMoment.isAfter(parseInput(maxDate, format)))
-  )
+	return dayMoment.isBetween(
+			range['startDate'].clone().startOf('days'),
+			range['endDate'].clone().add(1, 'days') );
 }
 
 class Calendar extends Component {
+	constructor(props, context) {
+		super(props, context);
 
-  constructor(props, context) {
-    super(props, context);
+		this.oldSelectMode = props.selectMode;
 
-    const { format, range, theme, offset, firstDayOfWeek } = props;
+		let { format, dates, theme, firstDayOfWeek, viewMode, selectMode } = props;
 
-    const date = parseInput(props.date, format)
-    const state = {
-      date,
-      shownDate : (range && range['endDate'] || date).clone().add(offset, 'months'),
-      firstDayOfWeek: (firstDayOfWeek || moment.localeData().firstDayOfWeek()),
-    }
+		let state = {
+			viewMode,
+			selectMode,
+			dates,
+			shownDate : (dates && dates['endDate'] || dates || moment()).clone(),
+			firstDayOfWeek: (firstDayOfWeek || moment.localeData().firstDayOfWeek()),
+		}
 
-    this.state  = state;
-    this.styles = getTheme(theme);
-  }
+		this.selectDateRangeStep = 0;
+		this.state	= state;
+		this.styles = getTheme(theme);
+	}
+	
+	componentWillReceiveProps(nextProps) {
+		let { dates, selectMode } = nextProps;
+		let viewMode, shownDate, range;
 
-  componentDidMount() {
-    const { onInit } = this.props;
-    onInit && onInit(this.state.date);
-  }
+		switch(selectMode) {
+			case SELECTMODE.DATES:
+				shownDate = (dates&&dates['endDate']||moment()).clone();
+				viewMode = selectMode>>2<<2;
+				break;
+			case SELECTMODE.TIME:
+			case SELECTMODE.DATE:
+			case SELECTMODE.WEEK:
+			case SELECTMODE.MONTH:
+			case SELECTMODE.YEAR:
+				shownDate = (dates||moment()).clone();
+				viewMode = selectMode>>2<<2;
+				break;
+		}
 
-  getShownDate() {
-    const { link, offset } = this.props;
+		if( dates !== undefined || (this.oldSelectMode != selectMode && dates === undefined)){
+			this.setState({dates});
+		}
 
-    const shownDate = (link) ? link.clone().add(offset, 'months') : this.state.shownDate;
+		if(this.oldSelectMode != selectMode){
+			this.oldSelectMode = selectMode;
+		}
 
-    return shownDate;
-  }
+		this.setState({
+			selectMode,
+			viewMode,
+			shownDate
+		});
+	}
 
-  handleSelect(newDate) {
-    const { link, onChange } = this.props;
-    const { date } = this.state;
+	componentDidMount() {
+		const { onInit } = this.props;
+		onInit && onInit(this.state.dates);
+	}
 
-    onChange && onChange(newDate);
+	render() {
+		switch(this.state.viewMode) {
+			case VIEWMODE.DAY:
+				return this.renderDayView()
+			case VIEWMODE.MONTH:
+				return this.renderMonthView()
+			case VIEWMODE.YEAR:
+				return this.renderYearView()
+			case VIEWMODE.YEARS:
+				return this.renderYearsView()
+		}
+	}
 
-    if (!link) {
-      this.setState({ date : newDate });
-    }
-  }
+	cellClickHandle(newDate) {
+		const { onChange } = this.props;
+		const { dates, selectMode, viewMode } = this.state;
 
-  changeMonth(direction, event) {
-    event.preventDefault();
-    const { link, linkCB } = this.props;
+		//是否是selectMode对应的viewMode
+		const isCorrelateVM = viewMode>>2 == selectMode>>2;
+		switch(true) {
+			case isCorrelateVM && selectMode == SELECTMODE.DATES:
+				//是对应的viewMode且selectMode为选择日期范围
+				this.selectDateRange(newDate)
+				break;
+			case isCorrelateVM:
+				//是对应的viewMode, 则修改选择的日期
+				onChange && onChange(newDate);
+				this.setState({ dates : newDate });
+				break;
+			case viewMode>>2 > selectMode>>2:
+				//viewMode层级大于selectMode层级，则切换viewMode更小的层级
+				this.setState({
+					viewMode : viewMode>>2,
+					shownDate: newDate
+				});
+				break;
+			case viewMode>>2 < selectMode>>2:
+				//不应该出现这种情况，说明传入的viewMode与selectMode不合理
+				break;
+		}
+	}
 
-    if (link && linkCB) {
-      return linkCB(direction);
-    }
+	orderRange(range) {
+		const { startDate, endDate } = range;
+		const swap = startDate.isAfter(endDate);
 
-    const current  = this.state.shownDate.month();
-    const newMonth = this.state.shownDate.clone().add(direction, 'months');
+		if (!swap) return range;
 
-    this.setState({
-      shownDate : newMonth
-    });
-  }
+		return {
+			startDate : endDate,
+			endDate   : startDate
+		}
+	}
 
-  renderMonthAndYear(classes) {
-    const shownDate       = this.getShownDate();
-    const month           = moment.months(shownDate.month());
-    const year            = shownDate.year();
-    const { styles }      = this;
-    const { onlyClasses } = this.props;
+	selectDateRange(date) {
+		const { onChange } = this.props
+		const { startDate, endDate } = this.state.dates||{};
+		
+		let range = { startDate, endDate };
 
-    return (
-      <div style={onlyClasses ? undefined : styles['MonthAndYear']} className={classes.monthAndYearWrapper}>
-        <button
-          style={onlyClasses ? undefined : { ...styles['MonthButton'], float : 'left' }}
-          className={classes.prevButton}
-          onClick={this.changeMonth.bind(this, -1)}>
-          <i style={{ ...styles['MonthArrow'], ...styles['MonthArrowPrev'] }}></i>
-        </button>
-        <span>
-          <span className={classes.month}>{month}</span>
-          <span className={classes.monthAndYearDivider}> - </span>
-          <span className={classes.year}>{year}</span>
-        </span>
-        <button
-          style={onlyClasses ? undefined : { ...styles['MonthButton'], float : 'right' }}
-          className={classes.nextButton}
-          onClick={this.changeMonth.bind(this, +1)}>
-          <i style={{ ...styles['MonthArrow'], ...styles['MonthArrowNext'] }}></i>
-        </button>
-      </div>
-    )
-  }
+		switch (this.selectDateRangeStep) {
+			case 0:
+				range['startDate'] = date;
+				range['endDate'] = date;
+				this.selectDateRangeStep = 1;
+				break;
+			case 1:
+				range['endDate'] = date;
+				this.selectDateRangeStep = 2;
+				break;
+		}
 
-  renderWeekdays(classes) {
-    const dow             = this.state.firstDayOfWeek;
-    const weekdays        = [];
-    const { styles }      = this;
-    const { onlyClasses } = this.props;
+		range = this.orderRange(range);
 
-    for (let i = dow; i < 7 + dow; i++) {
-      const day = moment.weekdaysMin(i);
+		this.setState({ dates: range });
 
-      weekdays.push(
-        <span style={onlyClasses ? undefined : styles['Weekday']} className={classes.weekDay} key={day}>{day}</span>
-      );
-    }
+		if(this.selectDateRangeStep == 2) {
+			this.selectDateRangeStep = 0;
+			onChange && onChange(range);
+		}
+	}
 
-    return weekdays;
-  }
+	transitionBtnClickHandle(direction, event) {
+		event.preventDefault();
 
-  renderDays(classes) {
-    // TODO: Split this logic into smaller chunks
-    const { styles }               = this;
+		const { viewMode, shownDate } = this.state;
+		let newShownDate = shownDate;
 
-    const { range, minDate, maxDate, format, onlyClasses } = this.props;
+		switch(viewMode) {
+			case VIEWMODE.DAY:
+				newShownDate = shownDate.clone().add(direction, 'hours');
+				break;
+			case VIEWMODE.MONTH:
+				newShownDate = shownDate.clone().add(direction, 'months');
+				break;
+			case VIEWMODE.YEAR:
+				newShownDate = shownDate.clone().add(direction, 'years');
+				break;
+			case VIEWMODE.YEARS:
+				newShownDate = shownDate.clone().add(direction*16, 'years');
+				break;
+			default:
+				break;
+		}
 
-    const shownDate                = this.getShownDate();
-    const { date, firstDayOfWeek } = this.state;
-    const dateUnix                 = date.unix();
+		this.setState({
+			shownDate : newShownDate
+		});
+	}
 
-    const monthNumber              = shownDate.month();
-    const dayCount                 = shownDate.daysInMonth();
-    const startOfMonth             = shownDate.clone().startOf('month').isoWeekday();
+	headerTitleClickHandle() {
+		let newViewMode = VIEWMODE.MONTH;
+		const { viewMode } = this.state;
 
-    const lastMonth                = shownDate.clone().month(monthNumber - 1);
-    const lastMonthNumber          = lastMonth.month();
-    const lastMonthDayCount        = lastMonth.daysInMonth();
+		switch(true) {
+			case viewMode < VIEWMODE.YEARS:
+				this.setState({viewMode: viewMode<<2});
+				break;
+		}
+	}
 
-    const nextMonth                = shownDate.clone().month(monthNumber + 1);
-    const nextMonthNumber          = nextMonth.month();
+	ganerateDays() {
+		const { firstDayOfWeek, shownDate } = this.state;
 
-    const days                     = [];
+		const monthNumber = shownDate.month();
+		const dayCount = shownDate.daysInMonth();
+		const startOfMonth = shownDate.clone().startOf('month').isoWeekday();
+		const endOfMonth = shownDate.clone().endOf('month').date();
+		const days = [];
 
-    // Previous month's days
-    const diff = (Math.abs(firstDayOfWeek - (startOfMonth + 7)) % 7);
-    for (let i = diff-1; i >= 0; i--) {
-      const dayMoment  = lastMonth.clone().date(lastMonthDayCount - i);
-      days.push({ dayMoment, isPassive : true });
-    }
+		const diff = (firstDayOfWeek - startOfMonth) % 7;
+		for (let i = diff + 1; i <= 42 + diff; i++) {
+			const dayMoment	= shownDate.clone().date(i);
+			days.push({ dayMoment, isPassive : i < 1 || i > dayCount });
+		}
+		
+		return days;
+	}
 
-    // Current month's days
-    for (let i = 1; i <= dayCount; i++) {
-      const dayMoment  = shownDate.clone().date(i);
-      days.push({ dayMoment });
-    }
+	ganerateMonths() {
+		const { shownDate } = this.state;
+		const days = [];
+		for (let i = -1; i <= 14; i++ ) {
+			const dayMoment	= shownDate.clone().month(i);
+			days.push({ dayMoment, isPassive: (i < 0 || i > 11) });
+		}
+		return days
+	}
 
-    // Next month's days
-    const remainingCells = 42 - days.length; // 42cells = 7days * 6rows
-    for (let i = 1; i <= remainingCells; i++ ) {
-      const dayMoment  = nextMonth.clone().date(i);
-      days.push({ dayMoment, isPassive : true });
-    }
+	ganerateYears() {
+		const { shownDate } = this.state;
+		const minYear = 1915;
+		const maxYear = 2115;
+		let year = shownDate.year();
+		year = Math.min(maxYear, Math.max(minYear, year));
+		shownDate.year(year);
 
-    const today = moment().startOf('day');
-    return days.map((data, index) => {
-      const { dayMoment, isPassive } = data;
-      const isSelected    = !range && (dayMoment.unix() === dateUnix);
-      const isInRange     = range && checkRange(dayMoment, range);
-      const isStartEdge   = range && checkStartEdge(dayMoment, range);
-      const isEndEdge     = range && checkEndEdge(dayMoment, range);
-      const isEdge        = isStartEdge || isEndEdge;
-      const isToday       = today.isSame(dayMoment);
-      const isOutsideMinMax = isOusideMinMax(dayMoment, minDate, maxDate, format);
+		const indexInPage = (year-minYear)%16;
+		const startYear = Math.min(Math.max(minYear, year-indexInPage));
+		const endYear = Math.min(maxYear, year-indexInPage+15);
+		const days = [];
+		for (let i = startYear; i <= endYear; i++ ) {
+			const dayMoment	= shownDate.clone().year(i);
+			days.push({ dayMoment });
+		}
+		return days;
+	}
 
-      return (
-        <DayCell
-          onSelect={ this.handleSelect.bind(this) }
-          { ...data }
-          theme={ styles }
-          isStartEdge = { isStartEdge }
-          isEndEdge = { isEndEdge }
-          isSelected={ isSelected || isEdge }
-          isInRange={ isInRange }
-          isToday={ isToday }
-          key={ index }
-          isPassive = { isPassive || isOutsideMinMax }
-          onlyClasses = { onlyClasses }
-          classNames = { classes }
-        />
-      );
-    })
-  }
+	renderHeader(title) {
+		const { styles } = this;
 
-  render() {
-    const { styles } = this;
-    const { onlyClasses, classNames } = this.props;
+		return (
+			<div style={styles['Header']} className='rdr-header-inner'>
+				<button
+					style={{ ...styles['TransitionBtn'], float : 'left' }}
+					className='rdr-header-button prev'
+					onClick={this.transitionBtnClickHandle.bind(this, -1)}>
+					<i style={{ ...styles['TransitionBtnArrow'], ...styles['TransitionBtnArrowPrev'] }}></i>
+				</button>
+				<span className='rdr-header-title'
+					onClick={this.headerTitleClickHandle.bind(this)}
+					style={{ ...styles['HeaderTitle']}}>
+					{title}
+				</span>
+				<button
+					style={{ ...styles['TransitionBtn'], float : 'right' }}
+					className='rdr-header-button next'
+					onClick={this.transitionBtnClickHandle.bind(this, +1)}>
+					<i style={{ ...styles['TransitionBtnArrow'], ...styles['TransitionBtnArrowNext'] }}></i>
+				</button>
+			</div>
+		)
+	}
 
-    const classes = { ...defaultClasses, ...classNames };
+	renderWeekdays() {
+		const dow		= this.state.firstDayOfWeek;
+		const weekdays	 = [];
+		const { styles } = this;
 
-    return (
-      <div style={onlyClasses ? undefined : { ...styles['Calendar'], ...this.props.style }} className={classes.calendar}>
-        <div className={classes.monthAndYear}>{ this.renderMonthAndYear(classes) }</div>
-        <div className={classes.weekDays}>{ this.renderWeekdays(classes) }</div>
-        <div className={classes.days}>{ this.renderDays(classes) }</div>
-      </div>
-    )
-  }
+		for (let i = dow; i < 7 + dow; i++) {
+			const day = moment.weekdaysMin(i);
+
+			weekdays.push(
+				<span style={styles['Weekday']} className='rdr-WeekDay' key={day}>{day}</span>
+			);
+		}
+
+		return weekdays;
+	}
+
+	renderDays() {
+		const { styles } = this;
+		const { dates, selectMode } = this.state;
+		const days = this.ganerateDays();
+
+		return days.map((data, index) => {
+			const { dayMoment, isPassive } = data;
+			const isToday = dayMoment.isSame(new Date(), 'day'); 
+			let isSelected, isInRange;
+
+			switch(selectMode) {
+				case SELECTMODE.DATES:
+					isInRange = dates ? checkRange(dayMoment, dates) : false;
+					break;
+				case SELECTMODE.DATE:
+					isSelected = dates ? dayMoment.isSame(dates, 'day') : false;
+					break;
+				case SELECTMODE.WEEK:
+					isInRange = dates ? dayMoment.isSame(dates, 'week') : false;
+					break;
+			}
+
+			return (
+				<Cell
+					className="rdr-Day"
+					onSelect={ this.cellClickHandle.bind(this) }
+					{ ...data }
+					theme={ styles }
+					cellStyleKey="DayCell"
+					isSelected={ isSelected }
+					isInRange={ isInRange }
+					isToday={ isToday }
+					key={ index } >{ dayMoment.date() }</Cell>
+			);
+		})
+	}
+
+	renderMonths() {
+		const { styles } = this;
+		const { dates, selectMode } = this.state;
+		const months = this.ganerateMonths();
+
+		return months.map((data, index) => {
+			const { dayMoment, isPassive } = data;
+			//修改判断isSelected判断条件为同一天
+			const isSelected = (selectMode != SELECTMODE.DATES && 
+				selectMode != SELECTMODE.WEEK && dates && dayMoment.isSame(dates, 'month'));
+			//新增isToday状态
+			const isSameMonth = dayMoment.isSame(new Date(), 'month'); 
+
+			return (
+				<Cell
+					className="rdr-month"
+					onSelect={ this.cellClickHandle.bind(this) }
+					{ ...data }
+					theme={ styles }
+					cellStyleKey="MonthCell"
+					isSelected={ isSelected }
+					isToday={ isSameMonth }
+					key={ index } >{ moment.months(dayMoment.month()) }</Cell>
+			);
+		})
+	}
+
+	renderYears() {
+		const { styles } = this;
+		const { dates, selectMode } = this.state;
+		const years = this.ganerateYears();
+
+		return years.map((data, index) => {
+			const { dayMoment, isPassive } = data;
+			const isSelected = (selectMode != SELECTMODE.DATES && 
+				selectMode != SELECTMODE.WEEK && dates && dayMoment.isSame(dates, 'year'));
+			const isSameYear = dayMoment.isSame(new Date(), 'year'); 
+
+			return (
+				<Cell
+					className="rdr-year"
+					onSelect={ this.cellClickHandle.bind(this) }
+					{ ...data }
+					theme={ styles }
+					cellStyleKey="YearCell"
+					isSelected={ isSelected }
+					isToday={ isSameYear }
+					key={ index } >{ dayMoment.year() }</Cell>
+			);
+		})
+	}
+
+	renderDayView() {
+		const { styles } = this;
+		const headerTitle = '';
+		return (
+			<div style={{ ...styles['Calendar'], ...this.props.style }} className='rdr-Calendar'>
+				//TODO: 待实现
+			</div>
+		)
+	}
+
+	renderMonthView() {
+		const { styles } = this;
+		const { shownDate } = this.state;
+		const headerTitle = moment.months(shownDate.month()) + ' - ' + shownDate.year();
+
+		return (
+			<div style={{ ...styles['Calendar'], ...this.props.style }} className='rdr-Calendar'>
+				<div className='rdr-header'>{ this.renderHeader(headerTitle) }</div>
+				<div className='rdr-body'>
+					<div className='rdr-WeekDays'>{ this.renderWeekdays() }</div>
+					<div className='rdr-Days'>{ this.renderDays() }</div>
+				</div>
+			</div>
+		)
+	}
+
+	renderYearView() {
+		const { styles } = this;
+		const headerTitle = this.state.shownDate.year();
+
+		return (
+			<div style={{ ...styles['Calendar'], ...this.props.style }} className='rdr-Calendar'>
+				<div className='rdr-header'>{ this.renderHeader(headerTitle) }</div>
+				<div className='rdr-body'>
+					{ this.renderMonths() }
+				</div>
+			</div>
+		)
+	}
+
+	renderYearsView() {
+		const { styles } = this;
+		const headerTitle = '';
+
+		return (
+			<div style={{ ...styles['Calendar'], ...this.props.style }} className='rdr-Calendar'>
+				<div className='rdr-header'>{ this.renderHeader(headerTitle) }</div>
+				<div className='rdr-body'>
+					{ this.renderYears() }
+				</div>
+			</div>
+		)
+	}
 }
 
 Calendar.defaultProps = {
-  format      : 'DD/MM/YYYY',
-  theme       : {},
-  onlyClasses : false,
-  classNames  : {}
+	selectMode: SELECTMODE.DATE,
+	viewMode : VIEWMODE.MONTH,
+	format	 : 'YYYY-MM-DD',
+	theme	 : {},
 }
 
+let DatePropType = PropTypes.oneOfType([PropTypes.object, PropTypes.func, PropTypes.string]);
 Calendar.propTypes = {
-  sets           : PropTypes.string,
-  range          : PropTypes.shape({
-    startDate    : PropTypes.object,
-    endDate      : PropTypes.object
-  }),
-  minDate        : PropTypes.oneOfType([PropTypes.object, PropTypes.func, PropTypes.string]),
-  maxDate        : PropTypes.oneOfType([PropTypes.object, PropTypes.func, PropTypes.string]),
-  date           : PropTypes.oneOfType([PropTypes.object, PropTypes.string, PropTypes.func]),
-  format         : PropTypes.string.isRequired,
-  firstDayOfWeek : PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-  onChange       : PropTypes.func,
-  onInit         : PropTypes.func,
-  link           : PropTypes.oneOfType([PropTypes.shape({
-    startDate    : PropTypes.object,
-    endDate      : PropTypes.object,
-  }), PropTypes.bool]),
-  linkCB         : PropTypes.func,
-  theme          : PropTypes.object,
-  onlyClasses    : PropTypes.bool,
-  classNames     : PropTypes.object
+	minDate         : DatePropType,
+	maxDate         : DatePropType,
+	dates			: DatePropType,
+	format		    : PropTypes.string.isRequired,
+	firstDayOfWeek  : PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+	onChange		: PropTypes.func,
+	onInit		    : PropTypes.func,
+	theme			: PropTypes.object,
+	viewMode        : PropTypes.oneOf([
+						VIEWMODE.DAY,
+						VIEWMODE.MONTH,
+						VIEWMODE.YEAR,
+						VIEWMODE.YEARS
+					]),
+	selectMode      : PropTypes.oneOf([
+						SELECTMODE.TIME,
+						SELECTMODE.DATE,
+						SELECTMODE.DATES,
+						SELECTMODE.WEEK,
+						SELECTMODE.MONTH,
+						SELECTMODE.YEAR
+					]),
 }
 
 export default Calendar;

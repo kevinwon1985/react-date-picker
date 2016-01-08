@@ -1,13 +1,16 @@
+#说明
+fork自https://github.com/Adphorus/react-date-range
+因原版本仍然以来老版本的React，所以fork一份，自行维护
+新增Datepicker
+##改动记录
+###Calendar
+新增today状态样式，调整hover，active，selected状态样式，区分开selected和today
+从外部接收到date改变后，也修改shownDate，使calendar日历界面显示的月份也渲染到对应的月份
+重构， 新增月视图，年试图，类似windows日历；新增选周，选月模式。
+
 # react-date-range
-![](https://badge.fury.io/js/react-date-range.svg)
-![](https://david-dm.org/Adphorus/react-date-range.svg)
-![](https://david-dm.org/Adphorus/react-date-range/dev-status.svg)
 
 A React component for choosing dates and date ranges. Uses [Moment.js](http://momentjs.com/) for date operations.
-
-**Live Demo :** [http://adphorus.github.io/react-date-range](http://adphorus.github.io/react-date-range)
-
-![](https://cdn.pbrd.co/images/1fjQlZzy.png)
 
 ## Getting Started
 ### Installation

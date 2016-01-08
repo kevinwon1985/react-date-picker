@@ -1,224 +1,239 @@
-export const defaultClasses = {
-  calendar             : 'rdr-Calendar',
-  dateRange            : 'rdr-DateRange',
-  predefinedRanges     : 'rdr-PredefinedRanges',
-  predefinedRangesItem : 'rdr-PredefinedRangeItem',
-  monthAndYear         : 'rdr-MonthAndYear',
-  weekDays             : 'rdr-WeekDays',
-  weekDay              : 'rdr-WeekDay',
-  days                 : 'rdr-Days',
-  day                  : 'rdr-Day',
-  dayActive            : 'is-selected',
-  dayPassive           : 'is-passive',
-  dayInRange           : 'is-inRange',
-  monthAndYearWrapper  : 'rdr-MonthAndYear-innerWrapper',
-  prevButton           : 'rdr-MonthAndYear-button prev',
-  nextButton           : 'rdr-MonthAndYear-button next',
-  month                : 'rdr-MonthAndYear-month',
-  monthAndYearDivider  : 'rdr-MonthAndYear-divider',
-  year                 : 'rdr-MonthAndYear-year'
-};
-
 const defaultTheme = {
-  DateRange : {
-    display       : 'block',
-    boxSizing     : 'border-box',
-    background    : '#ffffff',
-    borderRadius  : '2px',
-  },
+	Datepicker: {
+		position: 'relative'
+	},
 
-  Calendar        : {
-    width         : 280,
-    padding       : 10,
-    background    : '#ffffff',
-    borderRadius  : '2px',
-    display       : 'inline-block',
-    boxSizing     : 'border-box',
-    letterSpacing : 0,
-    color         : '#000000',
-  },
+	Dropdown: {
+		position: 'relative',
+		position: 'absolute',
+		top: '100%',
+		left: 0,
+		zIndex: 1000,
+		backgroundColor: '#fff',
+		border: '1px solid rgba(0, 0, 0, 0.15)',
+		boxShadow: '0 6px 12px rgba(0, 0, 0, 0.175)',
+		backgroundClip: 'padding-box'
+	},
 
-  Day : {
-    boxSizing     : 'border-box',
-    display       : 'inline-block',
-    letterSpacing : 'initial',
-    textAlign     : 'center',
-    fontSize      : 12,
-    cursor        : 'pointer',
-    transition    : 'transform .1s ease',
-  },
+	Calendar: {
+		width: 280,
+		padding: 10,
+		background: '#ffffff',
+		borderRadius: '2px',
+		display: 'inline-block',
+		boxSizing: 'border-box',
+		letterSpacing: 0,
+		color: '#000000',
+	},
 
-  DayPassive : {
-    opacity       : 0.4,
-    cursor        : 'normal'
-  },
+	Cell: {
+		boxSizing: 'border-box',
+		display: 'inline-block',
+		letterSpacing: 'initial',
+		textAlign: 'center',
+		fontSize: 12,
+		cursor: 'pointer',
+		transition: 'transform .1s ease',
+		borderWidth: 2,
+		borderStyle: 'solid',
+		borderColor: '#fff',
+	},
 
-  DayHover : {
-    background    : '#bdc3c7',
-  },
+	DayCell: {
 
-  DayToday : {
-  },
+	},
 
-  DayActive : {
-    background    : '#95a5a6',
-    color         : '#ffffff',
-    transform     : 'scale(0.9)',
-  },
+	MonthCell: {
 
-  DaySelected : {
-    background    : '#e74c3c',
-    color         : '#ffffff',
-  },
+	},
 
-  DayStartEdge : {
-  },
+	YearCell: {
 
-  DayEndEdge : {
-  },
+	},
 
-  DayInRange : {
-    background    : '#34495e',
-    color         : '#95a5a6',
-  },
+	DayPassive : {
+		color: '#999',
+		cursor: 'normal'
+	},
 
-  Weekday : {
-    boxSizing     : 'border-box',
-    display       : 'inline-block',
-    letterSpacing : 'initial',
-    textAlign     : 'center',
-    fontSize      : 12,
-    fontWeight    : '600',
-    marginBottom  : 1
-  },
+	DayHover: {
+		borderColor: '#999',
+	},
 
-  MonthAndYear : {
-    textAlign     : 'center',
-    boxSizing     : 'border-box',
-    fontSize      : 12,
-    padding       : '10px 0',
-    height        : 38,
-    lineHeight    : '18px'
-  },
+	DayActive: {
+		transform: 'scale(0.9)',
+	},
 
-  MonthButton : {
-    display       : 'block',
-    boxSizing     : 'border-box',
-    height        : 18,
-    width         : 18,
-    padding       : 0,
-    margin        : '0 10px',
-    border        : 'none',
-    background    : '#bdc3c7',
-    boxShadow     : 'none',
-    outline       : 'none',
-    borderRadius  : '50%',
-  },
+	DaySelected: {
+		borderColor: '#23537d',
+	},
 
-  MonthArrow : {
-    display       : 'block',
-    width         : 0,
-    height        : 0,
-    padding       : 0,
-    margin        : 0,
-    border        : '4px solid transparent',
-    textAlign     : 'center'
-  },
+	DayIsToday: {
+		background: '#337ab7',
+		color: '#ffffff',
+	},
 
-  MonthArrowPrev : {
-    borderRightWidth : '6px',
-    borderRightColor : '#34495e',
-    marginLeft       : 1,
-  },
+	DayInRange: {
+		background: '#34495e',
+		color: '#95a5a6',
+	},
 
-  MonthArrowNext : {
-    borderLeftWidth  : '6px',
-    borderLeftColor  : '#34495e',
-    marginLeft       : 7,
-  },
+	Weekday: {
+		boxSizing: 'border-box',
+		display: 'inline-block',
+		letterSpacing: 'initial',
+		textAlign: 'center',
+		fontSize: 12,
+		fontWeight: '600',
+		marginBottom: 1
+	},
 
-  PredefinedRanges : {
-    width         : 140,
-    display       : 'inline-block',
-    verticalAlign : 'top',
-  },
+	Header: {
+		textAlign: 'center',
+		boxSizing: 'border-box',
+		fontSize: 12,
+		padding: '10px 0',
+		height: 38,
+		lineHeight: '18px'
+	},
 
-  PredefinedRangeItem : {
-    display       : 'block',
-    fontSize      : 12,
-    color         : '#2c3e50',
-    padding       : '10px 14px',
-    borderRadius  : '2px',
-    background    : '#ecf0f1',
-    textDecoration: 'none',
-    marginBottom  : 6,
-  }
+	HeaderTitle: {
+		fontSize: 14,
+		cursor: 'pointer'
+	},
+
+	TransitionBtn: {
+		display: 'block',
+		boxSizing: 'border-box',
+		height: 18,
+		width: 18,
+		padding: 0,
+		margin: '0 10px',
+		border: 'none',
+		background: '#bdc3c7',
+		boxShadow: 'none',
+		outline: 'none',
+		borderRadius: '50%',
+		cursor: 'pointer',
+	},
+
+	TransitionBtnArrow: {
+		display: 'block',
+		width: 0,
+		height: 0,
+		padding: 0,
+		margin: 0,
+		border: '4px solid transparent',
+		textAlign: 'center'
+	},
+
+	TransitionBtnArrowPrev: {
+		borderRightWidth: '6px',
+		borderRightColor: '#34495e',
+		marginLeft: 1,
+	},
+
+	TransitionBtnArrowNext: {
+		borderLeftWidth: '6px',
+		borderLeftColor: '#34495e',
+		marginLeft: 7,
+	},
 }
 
 export default (customTheme = {}) => {
 
-  let calendarWidth   = defaultTheme.Calendar.width;
-  let calendarPadding = defaultTheme.Calendar.padding;
+	let calendarWidth = defaultTheme.Calendar.width;
+	let calendarPadding = defaultTheme.Calendar.padding;
 
-  if ( customTheme.Calendar && customTheme.Calendar.hasOwnProperty('width') ) {
-    calendarWidth = customTheme.Calendar.width;
-  }
+	if (customTheme.Calendar && customTheme.Calendar.hasOwnProperty('width')) {
+		calendarWidth = customTheme.Calendar.width;
+	}
 
-  if ( customTheme.Calendar && customTheme.Calendar.hasOwnProperty('padding') ) {
-    calendarPadding = customTheme.Calendar.padding;
-  }
+	if (customTheme.Calendar && customTheme.Calendar.hasOwnProperty('padding')) {
+		calendarPadding = customTheme.Calendar.padding;
+	}
 
-  const cellSize = ( parseInt(calendarWidth) - parseInt(calendarPadding) * 2 ) / 7;
+	const dayCellSize = (parseInt(calendarWidth) - parseInt(calendarPadding) * 2) / 7;
 
-  return {
-    DateRange : { ...defaultTheme.DateRange, ...customTheme.DateRange },
+	const monthCellSize = (parseInt(calendarWidth) - parseInt(calendarPadding) * 2) / 4;
 
-    Calendar : { ...defaultTheme.Calendar, ...customTheme.Calendar },
+	return {
 
-    Day : {
-      width         : cellSize,
-      height        : cellSize,
-      lineHeight    : cellSize + 'px',
-      ...defaultTheme.Day,
-      ...customTheme.Day,
-    },
+		Datepicker: {
+			...defaultTheme.Datepicker
+		},
 
-    DayPassive : { ...defaultTheme.DayPassive, ...customTheme.DayPassive },
+		Dropdown: {
+			...defaultTheme.Dropdown,
+			...customTheme.Dropdown
+		},
 
-    DayHover : { ...defaultTheme.DayHover, ...customTheme.DayHover },
+		Calendar: { ...defaultTheme.Calendar, ...customTheme.Calendar },
 
-    DayToday : { ...defaultTheme.DayToday, ...customTheme.DayToday },
+		Cell: {
+			...defaultTheme.Cell,
+			...customTheme.Cell,
+		},
 
-    DayActive : { ...defaultTheme.DayActive, ...customTheme.DayActive },
+		DayCell: {
+			width: dayCellSize,
+			height: dayCellSize,
+			lineHeight: dayCellSize + 'px',
+			...defaultTheme.Cell,
+			...defaultTheme.DayCell,
+			...customTheme.DayCell,
+		},
 
-    DaySelected : { ...defaultTheme.DaySelected, ...customTheme.DaySelected },
+		MonthCell: {
+			width: monthCellSize,
+			height: monthCellSize,
+			lineHeight: monthCellSize + 'px',
+			...defaultTheme.Cell,
+			...defaultTheme.MonthCell,
+			...customTheme.MonthCell,
+		},
 
-    DayStartEdge : { ...defaultTheme.DayStartEdge, ...customTheme.DayStartEdge },
+		YearCell: {
+			width: monthCellSize,
+			height: monthCellSize,
+			lineHeight: monthCellSize + 'px',
+			...defaultTheme.Cell,
+			...defaultTheme.YearCell,
+			...customTheme.YearCell,
+		},
 
-    DayEndEdge : { ...defaultTheme.DayEndEdge, ...customTheme.DayEndEdge },
+		DayPassive : { ...defaultTheme.DayPassive, ...customTheme.DayPassive },
 
-    DayInRange : { ...defaultTheme.DayInRange, ...customTheme.DayInRange },
+		DayHover: { ...defaultTheme.DayHover, ...customTheme.DayHover },
 
-    Weekday : {
-      width         : cellSize,
-      height        : cellSize / 2,
-      lineHeight    : cellSize / 2 + 'px',
-      ...defaultTheme.Weekday,
-      ...customTheme.Weekday,
-    },
+		DayActive: { ...defaultTheme.DayActive, ...customTheme.DayActive },
 
-    MonthAndYear : { ...defaultTheme.MonthAndYear, ...customTheme.MonthAndYear },
+		DaySelected: { ...defaultTheme.DaySelected, ...customTheme.DaySelected },
 
-    MonthButton : { ...defaultTheme.MonthButton, ...customTheme.MonthButton },
+		DayIsToday: { ...defaultTheme.DayIsToday, ...customTheme.DayIsToday },
 
-    MonthArrow : { ...defaultTheme.MonthArrow, ...customTheme.MonthArrow },
+		DayInRange: { ...defaultTheme.DayInRange, ...customTheme.DayInRange },
 
-    MonthArrowPrev : { ...defaultTheme.MonthArrowPrev, ...customTheme.MonthArrowPrev },
+		Weekday: {
+			width: dayCellSize,
+			height: dayCellSize / 2,
+			lineHeight: dayCellSize / 2 + 'px',
+			...defaultTheme.Cell,
+			...defaultTheme.Weekday,
+			...customTheme.Weekday,
+			cursor: 'default'
+		},
 
-    MonthArrowNext : { ...defaultTheme.MonthArrowNext, ...customTheme.MonthArrowNext },
+		Header: { ...defaultTheme.Header, ...customTheme.Header },
+		
+		HeaderTitle: { ...defaultTheme.HeaderTitle, ...customTheme.HeaderTitle },
 
-    PredefinedRanges : { ...defaultTheme.PredefinedRanges, ...customTheme.PredefinedRanges },
+		TransitionBtn: { ...defaultTheme.TransitionBtn, ...customTheme.TransitionBtn },
 
-    PredefinedRangeItem : { ...defaultTheme.PredefinedRangeItem, ...customTheme.PredefinedRangeItem }
-  }
+		TransitionBtnArrow: { ...defaultTheme.TransitionBtnArrow, ...customTheme.TransitionBtnArrow },
+
+		TransitionBtnArrowPrev: { ...defaultTheme.TransitionBtnArrowPrev, ...customTheme.TransitionBtnArrowPrev },
+
+		TransitionBtnArrowNext: { ...defaultTheme.TransitionBtnArrowNext, ...customTheme.TransitionBtnArrowNext },
+	}
 }

@@ -1,5 +1,5 @@
-import DateRange from './DateRange.js';
-import Calendar from './Calendar.js';
-import defaultRanges from './defaultRanges.js';
+import Calendar from './Calendar'
+import Datepicker from './Datepicker'
+import { VIEWMODE, SELECTMODE } from './constants'
 
-export default { DateRange, Calendar, defaultRanges }
+export { Calendar, Datepicker, VIEWMODE, SELECTMODE }
