@@ -14,9 +14,28 @@ module.exports = {
 		sourceMapFilename: '[file].map'
 	},
 	plugins: [
-		new webpack.optimize.OccurenceOrderPlugin(),
+		// ignore dev config
+		new webpack.IgnorePlugin(/\.\/dev/, /\/config$/),
+
+		// set global vars
+		new webpack.DefinePlugin({
+			'process.env': {
+				// Useful to reduce the size of client-side libraries, e.g. react
+				NODE_ENV: JSON.stringify('production')
+			}
+		}),
+
+		// optimizations
 		new webpack.HotModuleReplacementPlugin(),
+		new webpack.optimize.DedupePlugin(),
+		new webpack.optimize.OccurenceOrderPlugin(),
+		new webpack.NoErrorsPlugin(),
 		new webpack.optimize.CommonsChunkPlugin('vendor', 'vendor.bundle.js'),
+		new webpack.optimize.UglifyJsPlugin({
+			compress: {
+				warnings: false
+			}
+		})
 	],
 	module: {
 		loaders: [

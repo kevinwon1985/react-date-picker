@@ -16,75 +16,78 @@ A React component for choosing dates and date ranges. Uses [Moment.js](http://mo
 ### Installation
 
 ```
-$ npm install --save react-date-range
+$ npm install --save datepicker-react
 ```
 
 ## Usage
 ### Date Picker
 ```javascript
 import React, { Component } from 'react';
-import { Calendar } from 'react-date-range';
+import ReactDom from 'react-dom';
+import { Calendar, Datepicker, VIEWMODE, SELECTMODE } from 'datepicker-react';
 
-class MyComponent extends Component {
-	handleSelect(date){
-		console.log(date); // Momentjs object
+class App extends Component {
+	constructor(props, context) {
+		super(props, context);
+
+		this.state = {
+			selectedDate: undefined,
+			selectedWeekDate: undefined,
+			selectedYearDate: undefined,
+			selectedDates: undefined
+		}
 	}
 
-	render(){
+	render() {
+		const { selectedDate, selectedWeekDate, selectedYearDate, selectedDates } = this.state;
+		const format = 'dddd, D MMMM YYYY';
+
 		return (
 			<div>
-				<Calendar
-					onInit={this.handleSelect}
-					onChange={this.handleSelect}
-				/>
+				<h1>选择日期</h1>
+				<Datepicker
+					placeholder="选择日期"
+					value={selectedDate}
+					onChange={this.handleSelectDates.bind(this, 'selectedDate')} />
+
+				<h1>选择周</h1>
+				<Datepicker
+					placeholder="选择周"
+					value={selectedWeekDate}
+					selectMode={SELECTMODE.WEEK}
+					onChange={this.handleSelectDates.bind(this, 'selectedWeekDate')} />
+
+				<h1>选择月</h1>
+				<Datepicker
+					placeholder="选择月"
+					value={selectedYearDate}
+					selectMode={SELECTMODE.YEAR}
+					onChange={this.handleSelectDates.bind(this, 'selectedYearDate')} />
+
+				<h1>选择时间范围</h1>
+				<Datepicker
+					placeholder="选择时间范围"
+					value={selectedDates}
+					selectMode={SELECTMODE.DATES}
+					onChange={this.handleSelectDates.bind(this, 'selectedDates')} />
 			</div>
 		)
 	}
-}
-
-```
-
-###### Available Options (props)
-* **date:** *(String, Moment.js object, Function)* - default: today
-* **format:** *(String)* - default: DD/MM/YYY
-* **firstDayOfWeek** *(Number)* - default: [moment.localeData().firstDayOfWeek()](http://momentjs.com/docs/#/i18n/locale-data/)
-* **theme:** *(Object)* see [Demo's source](https://github.com/Adphorus/react-date-range/blob/master/demo/src/components/Main.js#L130)
-* **onInit:** *(Function)* default: none
-* **onChange:** *(Function)* default: none
-
-### Range Picker
-```javascript
-import React, { Component } from 'react';
-import { DateRange } from 'react-date-range';
-
-class MyComponent extends Component {
-	handleSelect(range){
-		console.log(range);
-		// An object with two keys,
-		// 'startDate' and 'endDate' which are Momentjs objects.
-	}
-
-	render(){
-		return (
-			<div>
-				<DateRange
-					onInit={this.handleSelect}
-					onChange={this.handleSelect}
-				/>
-			</div>
-		)
+	
+	handleSelectDates(key, dates) {
+		this.setState({
+			[key]: dates
+		});
 	}
 }
 
+ReactDom.render(<App />, document.getElementById('root'));
 ```
 
 ###### Available Options (props)
-* **date:** *(String, Moment.js object, Function)* - default: today
-* **format:** *(String)* - default: DD/MM/YYY
-* **firstDayOfWeek** *(Number)* - default: [moment.localeData().firstDayOfWeek()](http://momentjs.com/docs/#/i18n/locale-data/)
-* **theme:** *(Object)* see [Demo's source](https://github.com/Adphorus/react-date-range/blob/master/demo/src/components/Main.js#L143)
-* **onInit:** *(Function)* default: none
+* **value:** *(Moment.js object)* - default: undefined
+* **format:** *(String)* - default: L
+* **placeholder** *(String)* - default: undefined
+* **theme:** *(Object)* 
+* **selectMode:** *(Number)* default: SELECTMODE.DATE
 * **onChange:** *(Function)* default: none
-* **linkedCalendars:** *(Boolean)* default: false
-* **calendars:** *(Number)* default: 2
-* **ranges:** *(Object)* default: none
