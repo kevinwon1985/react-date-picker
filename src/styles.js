@@ -4,7 +4,6 @@ const defaultTheme = {
 	},
 
 	Dropdown: {
-		position: 'relative',
 		position: 'absolute',
 		top: '100%',
 		left: 0,
