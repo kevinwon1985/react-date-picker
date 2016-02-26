@@ -11,8 +11,8 @@ function checkRange(dayMoment, range) {
 }
 
 class Calendar extends Component {
-	constructor(props, context) {
-		super(props, context);
+	constructor(props) {
+		super(props);
 
 		this.oldSelectMode = props.selectMode;
 

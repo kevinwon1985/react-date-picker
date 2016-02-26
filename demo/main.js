@@ -9,13 +9,14 @@ class App extends Component {
 		this.state = {
 			selectedDate: undefined,
 			selectedWeekDate: undefined,
+			selectedMonthDate: undefined,
 			selectedYearDate: undefined,
 			selectedDates: undefined
 		}
 	}
 
 	render() {
-		const { selectedDate, selectedWeekDate, selectedYearDate, selectedDates } = this.state;
+		const { selectedDate, selectedWeekDate, selectedMonthDate, selectedYearDate, selectedDates } = this.state;
 		const format = 'dddd, D MMMM YYYY';
 
 		return (
@@ -36,6 +37,13 @@ class App extends Component {
 				<h1>选择月</h1>
 				<Datepicker
 					placeholder="选择月"
+					value={selectedMonthDate}
+					selectMode={SELECTMODE.MONTH}
+					onChange={this.handleSelectDates.bind(this, 'selectedMonthDate')} />
+
+				<h1>选择年</h1>
+				<Datepicker
+					placeholder="选择年"
 					value={selectedYearDate}
 					selectMode={SELECTMODE.YEAR}
 					onChange={this.handleSelectDates.bind(this, 'selectedYearDate')} />

@@ -1,134 +1,151 @@
 import React, { Component, PropTypes } from 'react'
 import moment from 'moment'
-import listensToClickOutside from 'react-onclickoutside/decorator'
 import Calendar from './Calendar'
 import getTheme from './styles'
 import { VIEWMODE, SELECTMODE } from './constants'
 
 class ParaDatepicker extends Component {
-	constructor(props) {
-		super(props);
-		
-		this.oldSelectMode = props.selectMode;
+    constructor(props) {
+        super(props)
 
-		let { value, theme } = props;
+        this.oldSelectMode = props.selectMode
 
-		this.state = {
-			value,
-			formattedDate: ''
-		};
-		
-		this.styles = getTheme(theme);
-	}
+        let { value, theme } = props
 
-	componentWillReceiveProps(nextProps) {
-		let { value, selectMode } = nextProps;
-		if( value !== undefined || (this.oldSelectMode != selectMode && value === undefined)){
-			this.setState({value});
-		}
+        this.state = {
+            value,
+            formattedDate: ''
+        }
 
-		if(this.oldSelectMode != selectMode){
-			this.oldSelectMode = selectMode;
-		}
-	}
+        this.styles = getTheme(theme)
+        this.handleCalendarClick = this.handleCalendarClick.bind(this)
+        this.handleBodyClick = this.handleBodyClick.bind(this)
+    }
 
-	render() {
-		const { styles } = this;
-		let { className, placeholder, selectMode, theme } = this.props;
-		let { value, isOpen } = this.state;
-		const formattedDate = this.getFormattedDate();
-		const dropdownSty = {
-			...styles['Dropdown'],
-			display: isOpen?'block':'none'
-		};
+    componentWillReceiveProps(nextProps) {
+        let { value, selectMode } = nextProps
+        if (value !== undefined || (this.oldSelectMode != selectMode && value === undefined)) {
+            this.setState({ value })
+        }
 
-		return (
-			<div style={styles['Datepicker']}>
-				<div className="input-group"
-					onClick={this.toggleClickHandle.bind(this)}>
-					<input
-						type="text"
-						className="form-control"
-						placeholder={placeholder}
-						value={formattedDate}/>
-					<span className="input-group-addon">
-						<span className="glyphicon glyphicon-calendar"></span>
-					</span>
-				</div>
-				<div style={dropdownSty}>
-					<Calendar
-						selectMode={selectMode}
-						dates={value}
-						theme={theme}
-						onChange={this.handleSelectDate.bind(this)} />
-				</div>
-			</div>
-		)
-	}
+        if (this.oldSelectMode != selectMode) {
+            this.oldSelectMode = selectMode
+        }
+    }
 
-	handleSelectDate(value) {
-		let { selectMode, onChange } = this.props;
+    componentDidMount() {
+        this.refs.calendarContainer.addEventListener('click', this.handleCalendarClick, true)
+        document.addEventListener('click', this.handleBodyClick, true)
+    }
 
-		this.setState({value, isOpen: false});
+    componentWillUnmount() {
+        this.refs.calendarContainer.removeEventListener('click', this.handleCalendarClick)
+        document.removeEventListener('click', this.handleBodyClick)
+    }
 
-		onChange(value);
-	}
+    render() {
+        const { styles } = this
+        let { className, placeholder, selectMode, theme } = this.props
+        let { value, isOpen } = this.state
+        const formattedDate = this.getFormattedDate()
+        const dropdownSty = {
+            ...styles['Dropdown'],
+            display: isOpen?'block':'none'
+        };
 
-	toggleClickHandle(e) {
-		this.setState({isOpen: true});
-	}
+        return (
+            <div style={styles['Datepicker']}>
+                <div className="input-group"
+                    onClick={this.toggleClickHandle.bind(this)}>
+                    <input
+                        type="text"
+                        className="form-control"
+                        placeholder={placeholder}
+                        value={formattedDate}/>
+                    <span className="input-group-addon">
+                        <span className="glyphicon glyphicon-calendar"></span>
+                    </span>
+                </div>
+                <div style={dropdownSty} ref="calendarContainer">
+                    <Calendar
+                        selectMode={selectMode}
+                        dates={value}
+                        theme={theme}
+                        onChange={this.handleSelectDate.bind(this)} />
+                </div>
+            </div>
+        )
+    }
+    
+    handleCalendarClick() {
+        clearTimeout(this.hidenTimer)
+    }
 
-	//listensToClickOutside提供的事件
-	handleClickOutside(e) {
-		this.setState({isOpen: false});
-	}
+    handleBodyClick() {
+        if (this.state.isOpen) {
+            this.hidenTimer = setTimeout(()=>this.setState({ isOpen: false }), 50)
+        }
+        document.removeEventListener('click', this.handleBodyClick)
+    }
 
-	getFormattedDate() {
-		let { format, selectMode } = this.props;
-		let { value } = this.state;
-		let range;
+    handleSelectDate(value) {
+        let { selectMode, onChange } = this.props
 
-		let formattedDate;
-		switch(selectMode) {
-			case SELECTMODE.DATE:
-				return value ? moment(value).format(format) : '';
-			case SELECTMODE.WEEK:
-				return value ? value.clone().startOf('week').format(format) + 
-					' ~ ' + value.clone().endOf('week').format(format) : '';
-			case SELECTMODE.DATES:
-				return value ? moment(value.startDate).format(format) + 
-					' ~ ' + moment(value.endDate).format(format) : '';
-			case SELECTMODE.MONTH:
-				return value ? moment(value).format('YYYY-MM') : '';
-			case SELECTMODE.YEAR:
-				return value ? moment(value).format('YYYY') : '';
-		}
-	}
+        this.setState({ value, isOpen: false })
+
+        onChange(value)
+    }
+
+    toggleClickHandle(e) {
+        this.setState({ isOpen: true })
+    }
+
+    getFormattedDate() {
+        let { format, selectMode } = this.props
+        let { value } = this.state
+        let range
+
+        let formattedDate
+        switch (selectMode) {
+            case SELECTMODE.DATE:
+                return value ? moment(value).format(format) : ''
+            case SELECTMODE.WEEK:
+                return value ? value.clone().startOf('week').format(format) +
+                    ' ~ ' + value.clone().endOf('week').format(format) : ''
+            case SELECTMODE.DATES:
+                return value ? moment(value.startDate).format(format) +
+                    ' ~ ' + moment(value.endDate).format(format) : ''
+            case SELECTMODE.MONTH:
+                return value ? moment(value).format('YYYY-MM') : ''
+            case SELECTMODE.YEAR:
+                return value ? moment(value).format('YYYY') : ''
+        }
+    }
 }
 
 ParaDatepicker.defaultProps = {
-	className: '',
-	placeholder: '',
-	format: 'L',
-	selectMode: SELECTMODE.DATE
+    className: '',
+    placeholder: '',
+    format: 'L',
+    selectMode: SELECTMODE.DATE
 }
 
-let DatePropType = PropTypes.oneOfType([PropTypes.object, PropTypes.func, PropTypes.string]);
+let DatePropType = PropTypes.oneOfType([PropTypes.object, PropTypes.func, PropTypes.string])
 ParaDatepicker.propTypes = {
-	minDate         : DatePropType,
-	maxDate         : DatePropType,
-	theme			: PropTypes.object,
-	value			: DatePropType,
-	format          : PropTypes.string,
-	placeholder     : PropTypes.string,
-	selectMode      : PropTypes.oneOf([
-						SELECTMODE.TIME,
-						SELECTMODE.DATE,
-						SELECTMODE.DATES,
-						SELECTMODE.WEEK,
-						SELECTMODE.MONTH,
-						SELECTMODE.YEAR
-					]),
+    minDate: DatePropType,
+    maxDate: DatePropType,
+    theme: PropTypes.object,
+    value: DatePropType,
+    format: PropTypes.string,
+    placeholder: PropTypes.string,
+    selectMode: PropTypes.oneOf([
+        SELECTMODE.TIME,
+        SELECTMODE.DATE,
+        SELECTMODE.DATES,
+        SELECTMODE.WEEK,
+        SELECTMODE.MONTH,
+        SELECTMODE.YEAR
+    ]),
 }
 
-export default listensToClickOutside(ParaDatepicker);
+export default ParaDatepicker

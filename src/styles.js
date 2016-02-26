@@ -1,6 +1,7 @@
 const defaultTheme = {
 	Datepicker: {
-		position: 'relative'
+		position: 'relative',
+        display: 'inline-block'
 	},
 
 	Dropdown: {
