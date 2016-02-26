@@ -1,6 +1,6 @@
 {
   "name": "datepicker-react",
-  "version": "0.9.5",
+  "version": "0.9.6",
   "description": "A React component for choosing dates.",
   "main": "lib/index.js",
   "scripts": {
