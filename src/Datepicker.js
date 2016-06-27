@@ -52,7 +52,8 @@ class ParaDatepicker extends Component {
             ...styles['Dropdown'],
             display: isOpen?'block':'none'
         };
-
+        console.log(styles)
+		const clearButton=styles['ClearButton']
         return (
             <div style={styles['Datepicker']}>
                 <div className="input-group"
@@ -62,6 +63,8 @@ class ParaDatepicker extends Component {
                         className="form-control"
                         placeholder={placeholder}
                         value={formattedDate}/>
+                    <span className="input-group-clear" style={clearButton}>
+                    </span>
                     <span className="input-group-addon">
                         <span className="glyphicon glyphicon-calendar"></span>
                     </span>
@@ -97,9 +100,24 @@ class ParaDatepicker extends Component {
     }
 
     toggleClickHandle(e) {
-        this.setState({ isOpen: true })
+    	if(e.target.className=='input-group-clear'){
+    		let {onChange}=this.props
+    		this.setState({ 
+    			isOpen: false
+    		   ,value:null
+    		})
+    		onChange(null)
+    	}else{
+    		this.setState({ isOpen: true })
+    	}
+        
     }
-
+	
+	
+	clearDate(){
+		
+	}
+	
     getFormattedDate() {
         let { format, selectMode } = this.props
         let { value } = this.state
