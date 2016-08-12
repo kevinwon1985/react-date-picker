@@ -5,7 +5,7 @@ module.exports = {
 	devtool: 'cheap-source-map',
 	entry: {
 		app: './demo/main',
-		vendor: ['react', 'react-dom', 'moment', 'react-onclickoutside/decorator']
+		vendor: ['react', 'react-dom', 'moment']
 	},
 	output: {
 		path: path.join(__dirname, 'demo/static'),
