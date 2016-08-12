@@ -9,6 +9,11 @@ function checkRange(dayMoment, range) {
 			range['startDate'].clone().startOf('days'),
 			range['endDate'].clone().add(1, 'days') );
 }
+function checkRangex(dayMoment, rangex) {
+	return dayMoment.isBetween(
+			moment(rangex['rangeMindate']).clone().startOf('days'),
+			moment(rangex['rangeMaxdate']).clone().add(1, 'days') )
+}
 
 class Calendar extends Component {
 	constructor(props) {
@@ -16,13 +21,15 @@ class Calendar extends Component {
 
 		this.oldSelectMode = props.selectMode;
 
-		let { format, dates, theme, firstDayOfWeek, viewMode, selectMode } = props;
+		let { format, dates, theme, firstDayOfWeek, viewMode, selectMode,rangeMindate,rangeMaxdate } = props;
 
 		let state = {
 			viewMode,
 			selectMode,
 			dates,
-			shownDate : (dates && dates['endDate'] || dates || moment()).clone(),
+			rangeMindate, 
+			rangeMaxdate,
+			shownDate : (dates && rangeMindate && rangeMaxdate && dates['endDate'] || dates || moment()).clone(),
 			firstDayOfWeek: (firstDayOfWeek || moment.localeData().firstDayOfWeek()),
 		}
 
@@ -32,13 +39,17 @@ class Calendar extends Component {
 	}
 	
 	componentWillReceiveProps(nextProps) {
-		let { dates, selectMode } = nextProps;
+		let { dates, selectMode,rangeMindate,rangeMaxdate } = nextProps;
 		let viewMode, shownDate, range;
 
 		switch(selectMode) {
 			case SELECTMODE.DATES:
 				shownDate = (dates&&dates['endDate']||moment()).clone();
 				viewMode = selectMode>>2<<2;
+				break;
+			case SELECTMODE.DATEX:
+			    shownDate = (rangeMindate || moment()).clone();
+				viewMode = selectMode >> 2 << 2;
 				break;
 			case SELECTMODE.TIME:
 			case SELECTMODE.DATE:
@@ -61,13 +72,15 @@ class Calendar extends Component {
 		this.setState({
 			selectMode,
 			viewMode,
-			shownDate
+			shownDate,
+			rangeMindate,
+			rangeMaxdate
 		});
 	}
 
 	componentDidMount() {
 		const { onInit } = this.props;
-		onInit && onInit(this.state.dates);
+		onInit && onInit(this.state.dates)&& onInit(this.state.rangeMaxdate);
 	}
 
 	render() {
@@ -282,7 +295,7 @@ class Calendar extends Component {
 
 	renderDays() {
 		const { styles } = this;
-		const { dates, selectMode } = this.state;
+		const { dates, selectMode,rangeMindate, rangeMaxdate } = this.state;
 		const days = this.ganerateDays();
 
 		return days.map((data, index) => {
@@ -296,6 +309,10 @@ class Calendar extends Component {
 					break;
 				case SELECTMODE.DATE:
 					isSelected = dates ? dayMoment.isSame(dates, 'day') : false;
+					break;
+				case SELECTMODE.DATEX:
+					let rangex = { rangeMindate, rangeMaxdate };
+			        isInRange = rangex ? checkRangex(dayMoment, rangex) : false;
 					break;
 				case SELECTMODE.WEEK:
 					isInRange = dates ? dayMoment.isSame(dates, 'week') : false;
@@ -450,6 +467,7 @@ Calendar.propTypes = {
 	selectMode      : PropTypes.oneOf([
 						SELECTMODE.TIME,
 						SELECTMODE.DATE,
+						SELECTMODE.DATEX,
 						SELECTMODE.DATES,
 						SELECTMODE.WEEK,
 						SELECTMODE.MONTH,

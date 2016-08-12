@@ -10,10 +10,11 @@ class ParaDatepicker extends Component {
 
         this.oldSelectMode = props.selectMode
 
-        let { value, theme } = props
+        let { rangeStartdate, rangeEnddate, theme } = props
 
         this.state = {
-            value,
+            rangeStartdate,
+            rangeEnddate: null,
             formattedDate: ''
         }
 
@@ -23,16 +24,15 @@ class ParaDatepicker extends Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        let { value, selectMode } = nextProps
-        if (value !== undefined || (this.oldSelectMode != selectMode && value === undefined)) {
-            this.setState({ value })
+        let { rangeStartdate, rangeEnddate, selectMode } = nextProps
+        if ((rangeStartdate !== undefined) && (rangeEnddate !== undefined) || (this.oldSelectMode != selectMode && rangeStartdate === undefined && rangeEnddate === undefined)) {
+            this.setState({ rangeStartdate, rangeEnddate })
         }
 
         if (this.oldSelectMode != selectMode) {
             this.oldSelectMode = selectMode
         }
     }
-
     componentDidMount() {
         this.refs.calendarContainer.addEventListener('click', this.handleCalendarClick, true)
         document.addEventListener('click', this.handleBodyClick, true)
@@ -45,18 +45,16 @@ class ParaDatepicker extends Component {
 
     render() {
         const { styles } = this
-        let { className, placeholder, selectMode, theme } = this.props
-        let { value, isOpen } = this.state
+        let { className, placeholder, selectMode, theme, id} = this.props
+        let { rangeStartdate, rangeEnddate, isOpen } = this.state
         const formattedDate = this.getFormattedDate()
         const dropdownSty = {
-            ...styles['Dropdown'],
-            display: isOpen?'block':'none'
-        };
-
+            display: isOpen ? 'block' : 'none'
+        }
         return (
             <div style={styles['Datepicker']}>
                 <div className="input-group"
-                    onClick={this.toggleClickHandle.bind(this)}>
+                    onClick={this.toggleClickHandle.bind(this) }>
                     <input
                         type="text"
                         className="form-control"
@@ -69,46 +67,81 @@ class ParaDatepicker extends Component {
                 <div style={dropdownSty} ref="calendarContainer">
                     <Calendar
                         selectMode={selectMode}
-                        dates={value}
-                        theme={theme}
-                        onChange={this.handleSelectDate.bind(this)} />
+                        viewMode={VIEWMODE.MONTH}
+                        rangeMindate={rangeStartdate}
+                        rangeMaxdate={rangeEnddate}
+                        onChange={this.handleSelectDate.bind(this) }
+                        />
+                    <Calendar
+                        selectMode={selectMode}
+                        viewMode={VIEWMODE.MONTH}
+                        rangeMindate={rangeStartdate}
+                        rangeMaxdate={rangeEnddate}
+                        onChange={this.handleSelectDate.bind(this) }
+                        />
                 </div>
             </div>
         )
     }
-    
     handleCalendarClick() {
         clearTimeout(this.hidenTimer)
     }
-
     handleBodyClick() {
         if (this.state.isOpen) {
-            this.hidenTimer = setTimeout(()=>this.setState({ isOpen: false }), 50)
+            this.hidenTimer = setTimeout(() => this.setState({ isOpen: false }), 50)
         }
         document.removeEventListener('click', this.handleBodyClick)
     }
-
     handleSelectDate(value) {
-        let { selectMode, onChange } = this.props
-
-        this.setState({ value, isOpen: false })
-
-        onChange(value)
+        let { onChange } = this.props
+        const {rangeStartdate, rangeEnddate} = this.state
+        if (this.secondValue) {
+            this.firstValue = value;
+            this.setState({
+                rangeStartdate: this.firstValue,
+                rangeEnddate: this.firstValue
+            })
+            this.secondValue = undefined
+        }
+        else if (!this.firstValue) {
+            this.firstValue = value;
+            this.setState({
+                rangeStartdate: this.firstValue,
+                rangeEnddate: this.firstValue
+            })
+        } else {
+            this.secondValue = value;
+            if (this.firstValue > this.secondValue) {
+                this.setState({
+                    rangeStartdate: this.secondValue,
+                    rangeEnddate: this.firstValue
+                })
+            } else {
+                this.setState({
+                    rangeStartdate: this.firstValue,
+                    rangeEnddate: this.secondValue
+                })
+            }
+        }
+        onChange(rangeStartdate, rangeEnddate)
+        if ((this.firstValue) && (this.secondValue)) {
+            this.setState({ isOpen: false })
+        }
     }
-
     toggleClickHandle(e) {
         this.setState({ isOpen: true })
+
     }
 
     getFormattedDate() {
-        let { format, selectMode } = this.props
-        let { value } = this.state
+        let { format, selectMode} = this.props
+        let { rangeStartdate, rangeEnddate, value } = this.state
         let range
-
         let formattedDate
         switch (selectMode) {
-            case SELECTMODE.DATE:
-                return value ? moment(value).format(format) : ''
+            case SELECTMODE.DATEX:
+                return rangeStartdate ? moment(rangeStartdate).format(format) +
+                    ' ~ ' + moment(rangeEnddate).format(format) : ''
             case SELECTMODE.WEEK:
                 return value ? value.clone().startOf('week').format(format) +
                     ' ~ ' + value.clone().endOf('week').format(format) : ''
@@ -121,30 +154,37 @@ class ParaDatepicker extends Component {
                 return value ? moment(value).format('YYYY') : ''
         }
     }
-}
 
+}
 ParaDatepicker.defaultProps = {
     className: '',
     placeholder: '',
     format: 'L',
     selectMode: SELECTMODE.DATE
 }
-
 let DatePropType = PropTypes.oneOfType([PropTypes.object, PropTypes.func, PropTypes.string])
 ParaDatepicker.propTypes = {
+    rangeMindate:DatePropType,
+    rangeMaxdate:DatePropType,
     minDate: DatePropType,
     maxDate: DatePropType,
     theme: PropTypes.object,
+    firstValue: DatePropType,
+    secondValue: DatePropType,
+    rangeStartdate: DatePropType,
+    rangeEnddate: DatePropType,
     value: DatePropType,
+    startDate: DatePropType,
+    endDate: DatePropType,
     format: PropTypes.string,
     placeholder: PropTypes.string,
     selectMode: PropTypes.oneOf([
         SELECTMODE.TIME,
         SELECTMODE.DATE,
+        SELECTMODE.DATEX,
         SELECTMODE.DATES,
         SELECTMODE.WEEK,
         SELECTMODE.MONTH,
-        SELECTMODE.DATEX,
         SELECTMODE.YEAR
     ]),
 }
